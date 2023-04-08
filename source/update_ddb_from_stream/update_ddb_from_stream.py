@@ -108,18 +108,18 @@ def merge_values(record_data, set_data, metric_type, k):
 def merge_record_values(metric_key, grouped_rows):
     if 'DeviceTempAnomalyScore' in metric_key:
         return max(float(key[5]) for key in grouped_rows)
-    else:
-        metric_key_split = metric_key.split('|')
-        metric_key_value = metric_key_split[1]
-        return type_operator_map[metric_key_value]([float(key[5]) for key in grouped_rows])
+    metric_key_split = metric_key.split('|')
+    metric_key_value = metric_key_split[1]
+    return type_operator_map[metric_key_value]([float(key[5]) for key in grouped_rows])
 
 # This function sends anonymous usage data, if enabled
 def sendAnonymousData(event_time,dataDict):
     log.debug("Sending Anonymous Data")
-    postDict = {}
-    postDict['Data'] = dataDict
-    postDict['TimeStamp'] = event_time
-    postDict['Solution'] = os.environ.get('SOLUTION_ID')
+    postDict = {
+        'Data': dataDict,
+        'TimeStamp': event_time,
+        'Solution': os.environ.get('SOLUTION_ID'),
+    }
     postDict['Version'] = os.environ.get('SOLUTION_VERSION')
     postDict['UUID'] = os.environ.get('SOLUTION_UUID')
     # API Gateway URL to make HTTP POST call
@@ -191,8 +191,7 @@ def lambda_handler(event, context):
 
     if send_anonymous_data == "TRUE":
         try:
-            metric_data = {}
-            metric_data['RecordsProcessed'] = len(payload)
+            metric_data = {'RecordsProcessed': len(payload)}
             sendAnonymousData(event_time, metric_data)
         except Exception as error:
             log.error('send_anonymous_data error: %s', error)
